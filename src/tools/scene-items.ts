@@ -152,7 +152,7 @@ export async function initialize(server: McpServer, client: OBSWebSocketClient):
   // SetSceneItemTransform tool
   server.tool(
     "obs-set-scene-item-transform",
-    "Set the position, rotation, scale, or crop of a scene item",
+    "Set the position, rotation, scale, bounding box, or crop of a scene item. To fit a source into a box whatever its size, set boundsType OBS_BOUNDS_SCALE_INNER with boundsWidth and boundsHeight, and alignment 5 to position by the top-left corner",
     {
       sceneName: z.string().describe("The scene the item is in"),
       sceneItemId: z.number().describe("The ID of the scene item"),
@@ -161,6 +161,19 @@ export async function initialize(server: McpServer, client: OBSWebSocketClient):
       rotation: z.number().optional().describe("The rotation in degrees"),
       scaleX: z.number().optional().describe("The x scale factor"),
       scaleY: z.number().optional().describe("The y scale factor"),
+      alignment: z.number().optional().describe("Which point of the item sits at its position. 5 is top-left, 0 is centre"),
+      boundsType: z.enum([
+        "OBS_BOUNDS_NONE",
+        "OBS_BOUNDS_STRETCH",
+        "OBS_BOUNDS_SCALE_INNER",
+        "OBS_BOUNDS_SCALE_OUTER",
+        "OBS_BOUNDS_SCALE_TO_WIDTH",
+        "OBS_BOUNDS_SCALE_TO_HEIGHT",
+        "OBS_BOUNDS_MAX_ONLY"
+      ]).optional().describe("How the item fills its bounding box. OBS_BOUNDS_SCALE_INNER fits inside it, keeping the aspect ratio"),
+      boundsWidth: z.number().optional().describe("Width of the bounding box in canvas pixels"),
+      boundsHeight: z.number().optional().describe("Height of the bounding box in canvas pixels"),
+      boundsAlignment: z.number().optional().describe("Where the item sits inside its bounding box. 0 is centre"),
       cropTop: z.number().optional().describe("The number of pixels cropped off the top"),
       cropBottom: z.number().optional().describe("The number of pixels cropped off the bottom"),
       cropLeft: z.number().optional().describe("The number of pixels cropped off the left"),
@@ -185,6 +198,12 @@ export async function initialize(server: McpServer, client: OBSWebSocketClient):
         if (transformParams.scaleX !== undefined || transformParams.scaleY !== undefined) {
           sceneItemTransform.scaleX = transformParams.scaleX;
           sceneItemTransform.scaleY = transformParams.scaleY;
+        }
+
+        for (const field of ["alignment", "boundsType", "boundsWidth", "boundsHeight", "boundsAlignment"] as const) {
+          if (transformParams[field] !== undefined) {
+            sceneItemTransform[field] = transformParams[field];
+          }
         }
 
         if (transformParams.cropTop !== undefined || transformParams.cropBottom !== undefined ||
