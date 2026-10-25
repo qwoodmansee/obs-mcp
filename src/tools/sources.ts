@@ -43,7 +43,7 @@ export async function initialize(server: McpServer, client: OBSWebSocketClient):
   // GetSourceScreenshot tool
   server.tool(
     "obs-get-source-screenshot",
-    "Gets a Base64-encoded screenshot of a source",
+    "Gets a screenshot of a source (or a whole scene, by scene name) as an image",
     {
       sourceName: z.string().optional().describe("Name of the source to take a screenshot of"),
       sourceUuid: z.string().optional().describe("UUID of the source to take a screenshot of"),
@@ -62,12 +62,20 @@ export async function initialize(server: McpServer, client: OBSWebSocketClient):
           imageHeight,
           imageCompressionQuality
         });
-        
+
+        // OBS answers with a data URI such as "data:image/jpg;base64,...".
+        const match = /^data:([^;]+);base64,(.*)$/s.exec(response.imageData);
+        if (!match) {
+          throw new Error("OBS returned screenshot data that is not a base64 data URI");
+        }
+        const mimeType = match[1] === "image/jpg" ? "image/jpeg" : match[1];
+
         return {
           content: [
             {
-              type: "text",
-              text: `Screenshot data: ${response.imageData.substring(0, 100)}...`
+              type: "image",
+              data: match[2],
+              mimeType
             }
           ]
         };
