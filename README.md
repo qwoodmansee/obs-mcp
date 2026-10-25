@@ -2,6 +2,20 @@
 
 An MCP server for OBS Studio that provides tools to control OBS via the OBS WebSocket protocol.
 
+## Safe for live streams (this fork)
+
+This fork of [royshil/obs-mcp](https://github.com/royshil/obs-mcp) is meant to let an AI assistant run OBS during a live stream. It cannot:
+
+- read the stream key or other secrets (stream service settings, profile parameters, output settings, persistent data, vendor requests)
+- start, stop or toggle the stream or any output, or trigger hotkeys, which could do the same
+- switch or create profiles and scene collections, or change video and stream settings
+- delete scenes, sources, scene items or filters (hide or disable them instead)
+- write files to disk (saving screenshots, changing the record directory)
+
+`obs-get-input-settings` reduces URLs to their origin and redacts fields whose names look secret, because overlay URLs carry account tokens. `obs-set-input-settings` always layers settings on top of the existing ones and never resets an input.
+
+Enforcement lives in `src/request-policy.ts`. The client refuses any OBS request that is not on its allowlist, so a tool added later cannot reach a blocked request without someone editing that list.
+
 ## Features
 
 - Connect to OBS WebSocket server

@@ -74,39 +74,8 @@ export async function initialize(server: McpServer, client: OBSWebSocketClient):
     }
   );
 
-  // RemoveSceneItem tool
-  server.tool(
-    "obs-remove-scene-item",
-    "Remove a scene item from a scene",
-    {
-      sceneName: z.string().describe("The scene to remove the item from"),
-      sceneItemId: z.number().describe("The ID of the scene item to remove")
-    },
-    async ({ sceneName, sceneItemId }) => {
-      try {
-        await client.sendRequest("RemoveSceneItem", { sceneName, sceneItemId });
-
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Successfully removed item with ID ${sceneItemId} from ${sceneName}`
-            }
-          ]
-        };
-      } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Error removing scene item: ${error instanceof Error ? error.message : String(error)}`
-            }
-          ],
-          isError: true
-        };
-      }
-    }
-  );
+  // Removing scene items is not exposed; hide them with obs-set-scene-item-enabled.
+  // See src/request-policy.ts.
 
   // SetSceneItemEnabled tool
   server.tool(

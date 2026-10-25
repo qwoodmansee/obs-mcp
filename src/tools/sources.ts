@@ -85,50 +85,6 @@ export async function initialize(server: McpServer, client: OBSWebSocketClient):
     }
   );
 
-  // SaveSourceScreenshot tool
-  server.tool(
-    "obs-save-source-screenshot",
-    "Saves a screenshot of a source to the filesystem",
-    {
-      sourceName: z.string().optional().describe("Name of the source to take a screenshot of"),
-      sourceUuid: z.string().optional().describe("UUID of the source to take a screenshot of"),
-      imageFormat: z.string().describe("Image compression format to use"),
-      imageFilePath: z.string().describe("Path to save the screenshot file to"),
-      imageWidth: z.number().optional().describe("Width to scale the screenshot to"),
-      imageHeight: z.number().optional().describe("Height to scale the screenshot to"),
-      imageCompressionQuality: z.number().optional().describe("Compression quality to use (0-100, -1 for default)")
-    },
-    async ({ sourceName, sourceUuid, imageFormat, imageFilePath, imageWidth, imageHeight, imageCompressionQuality }) => {
-      try {
-        await client.sendRequest("SaveSourceScreenshot", {
-          sourceName,
-          sourceUuid,
-          imageFormat,
-          imageFilePath,
-          imageWidth,
-          imageHeight,
-          imageCompressionQuality
-        });
-        
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Successfully saved screenshot to: ${imageFilePath}`
-            }
-          ]
-        };
-      } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Error saving source screenshot: ${error instanceof Error ? error.message : String(error)}`
-            }
-          ],
-          isError: true
-        };
-      }
-    }
-  );
+  // Saving screenshots is not exposed: OBS would write to any path it is
+  // given. See src/request-policy.ts.
 }

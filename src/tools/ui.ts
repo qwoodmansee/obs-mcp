@@ -65,47 +65,9 @@ export async function initialize(server: McpServer, client: OBSWebSocketClient):
     }
   );
 
-  // OpenInputPropertiesDialog tool
-  server.tool(
-    "obs-open-input-properties",
-    "Opens the properties dialog of an input",
-    {
-      inputName: z.string().optional().describe("Name of the input to open the dialog of"),
-      inputUuid: z.string().optional().describe("UUID of the input to open the dialog of")
-    },
-    async ({ inputName, inputUuid }) => {
-      try {
-        const params: Record<string, any> = {};
-        
-        if (inputName !== undefined) {
-          params.inputName = inputName;
-        }
-        if (inputUuid !== undefined) {
-          params.inputUuid = inputUuid;
-        }
-
-        await client.sendRequest("OpenInputPropertiesDialog", params);
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Properties dialog opened for input: ${inputName || inputUuid}`
-            }
-          ]
-        };
-      } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Error opening input properties dialog: ${error instanceof Error ? error.message : String(error)}`
-            }
-          ],
-          isError: true
-        };
-      }
-    }
-  );
+  // Opening an input's properties dialog is not exposed: it shows the input's
+  // settings, URLs and tokens included, on a screen that may be captured.
+  // See src/request-policy.ts.
 
   // OpenInputFiltersDialog tool
   server.tool(

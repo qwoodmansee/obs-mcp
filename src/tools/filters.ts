@@ -137,38 +137,8 @@ export async function initialize(server: McpServer, client: OBSWebSocketClient):
     }
   );
 
-  // RemoveSourceFilter tool
-  server.tool(
-    "obs-remove-source-filter",
-    "Removes a filter from a source",
-    {
-      sourceName: z.string().describe("Name of the source the filter is on"),
-      filterName: z.string().describe("Name of the filter to remove")
-    },
-    async ({ sourceName, filterName }) => {
-      try {
-        await client.sendRequest("RemoveSourceFilter", { sourceName, filterName });
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Successfully removed filter '${filterName}' from source '${sourceName}'`
-            }
-          ]
-        };
-      } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Error removing source filter: ${error instanceof Error ? error.message : String(error)}`
-            }
-          ],
-          isError: true
-        };
-      }
-    }
-  );
+  // Removing filters is not exposed; disable them with obs-set-source-filter-enabled.
+  // See src/request-policy.ts.
 
   // SetSourceFilterName tool
   server.tool(

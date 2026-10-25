@@ -189,37 +189,7 @@ export async function initialize(server: McpServer, client: OBSWebSocketClient):
     }
   );
 
-  // RemoveScene tool
-  server.tool(
-    "obs-remove-scene",
-    "Remove a scene from OBS",
-    {
-      sceneName: z.string().describe("The name of the scene to remove")
-    },
-    async ({ sceneName }) => {
-      try {
-        await client.sendRequest("RemoveScene", { sceneName });
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Successfully removed scene: ${sceneName}`
-            }
-          ]
-        };
-      } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Error removing scene: ${error instanceof Error ? error.message : String(error)}`
-            }
-          ],
-          isError: true
-        };
-      }
-    }
-  );
+  // Removing scenes is not exposed. See src/request-policy.ts.
 
   // TriggerStudioModeTransition tool
   server.tool(

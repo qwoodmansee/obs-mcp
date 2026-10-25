@@ -1,6 +1,7 @@
 import WebSocket from 'ws';
 import crypto from 'crypto';
 import { EventEmitter } from 'events';
+import { assertRequestAllowed } from './request-policy.js';
 
 const logger = {
   log: (message: string) => console.error(message),
@@ -243,6 +244,8 @@ export class OBSWebSocketClient extends EventEmitter {
    * Send a request to the OBS WebSocket server
    */
   public async sendRequest<T = any>(requestType: string, requestData?: any, timeout: number = 10000): Promise<T> {
+    assertRequestAllowed(requestType);
+
     if (!this.ws || !this.connected || !this.identified) {
       throw new Error('Not connected or identified with OBS WebSocket server');
     }

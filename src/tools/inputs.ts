@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { OBSWebSocketClient } from "../client.js";
 import { z } from "zod";
+import { redactSecrets } from "../request-policy.js";
 
 export async function initialize(server: McpServer, client: OBSWebSocketClient): Promise<void> {
   // GetInputList tool
@@ -151,37 +152,7 @@ export async function initialize(server: McpServer, client: OBSWebSocketClient):
     }
   );
 
-  // RemoveInput tool
-  server.tool(
-    "obs-remove-input",
-    "Removes an existing input",
-    {
-      inputName: z.string().describe("Name of the input to remove")
-    },
-    async ({ inputName }) => {
-      try {
-        await client.sendRequest("RemoveInput", { inputName });
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Successfully removed input: ${inputName}`
-            }
-          ]
-        };
-      } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Error removing input: ${error instanceof Error ? error.message : String(error)}`
-            }
-          ],
-          isError: true
-        };
-      }
-    }
-  );
+  // Removing inputs is not exposed. See src/request-policy.ts.
 
   // SetInputName tool
   server.tool(
@@ -251,7 +222,7 @@ export async function initialize(server: McpServer, client: OBSWebSocketClient):
   // GetInputSettings tool
   server.tool(
     "obs-get-input-settings",
-    "Gets the settings of an input",
+    "Gets the settings of an input. URLs are reduced to their origin and secret-looking fields are redacted",
     {
       inputName: z.string().describe("Name of the input to get the settings of")
     },
@@ -262,7 +233,7 @@ export async function initialize(server: McpServer, client: OBSWebSocketClient):
           content: [
             {
               type: "text",
-              text: JSON.stringify(response, null, 2)
+              text: JSON.stringify(redactSecrets(response), null, 2)
             }
           ]
         };
@@ -283,20 +254,15 @@ export async function initialize(server: McpServer, client: OBSWebSocketClient):
   // SetInputSettings tool
   server.tool(
     "obs-set-input-settings",
-    "Sets the settings of an input",
+    "Sets the settings of an input, on top of its existing settings",
     {
       inputName: z.string().describe("Name of the input to set the settings of"),
-      inputSettings: z.record(z.any()).describe("Object of settings to apply"),
-      overlay: z.boolean().optional().describe("True to apply settings on top of existing ones, False to reset to defaults first")
+      inputSettings: z.record(z.any()).describe("Object of settings to apply")
     },
-    async ({ inputName, inputSettings, overlay }) => {
+    async ({ inputName, inputSettings }) => {
       try {
-        const requestParams: Record<string, any> = { inputName, inputSettings };
-        if (overlay !== undefined) {
-          requestParams.overlay = overlay;
-        }
-
-        await client.sendRequest("SetInputSettings", requestParams);
+        // Always overlay: resetting an input to its defaults would wipe its setup.
+        await client.sendRequest("SetInputSettings", { inputName, inputSettings, overlay: true });
         return {
           content: [
             {
